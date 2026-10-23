@@ -22,8 +22,9 @@ class Settings(BaseSettings):
     app_port: int = 8000
 
     # ---- 数据库 ----
+    # 占位默认值：真实连接串请通过 .env / 环境变量 DATABASE_URL 注入
     database_url: str = (
-        "postgresql+psycopg://crs:crs_dev_password@127.0.0.1:5432/contract_review"
+        "postgresql+psycopg://crs:change_me@127.0.0.1:5432/contract_review"
     )
     db_pool_size: int = 5
     db_echo: bool = False

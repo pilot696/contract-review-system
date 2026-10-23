@@ -1,4 +1,4 @@
-# 本地备选数据库：日常开发使用虚拟机 PG（192.168.200.188:5432）。
+# 本地备选数据库：日常开发使用 .env 中 DATABASE_URL 指向的 PostgreSQL。
 # 只有在本机 Docker 可用、且需要完全离线自包含时才启用：
 #   docker compose up -d postgres
 services:
@@ -7,7 +7,8 @@ services:
     container_name: crs-postgres
     environment:
       POSTGRES_USER: crs
-      POSTGRES_PASSWORD: crs_dev_password
+      # 占位口令，可用环境变量 POSTGRES_PASSWORD 覆盖
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
       POSTGRES_DB: contract_review
       TZ: Asia/Shanghai
     ports:

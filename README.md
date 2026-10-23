@@ -3,7 +3,7 @@
 面向企业合同审批场景的自动风险审查工具服务：拉取待办 → 下载附件 → 解析合同 → 规则审查 → 保存结果 → 回写审批评论区，形成可运行的完整闭环。
 
 - 设计文档：[docs/项目设计文档.md](docs/项目设计文档.md)（决策完备，含 DDL、接口契约、算法与 §12 验收对照）
-- 当前进度：**M0–M5 全部完成 ✅**（69 项测试通过，无头演示 17/17）
+- 当前进度：**M0–M5 全部完成 ✅**（70 项测试通过，无头演示 17/17）
 - 交付内容：7 个工具（REST + MCP）、8 张表、11 条规则、Mock 审批系统、Web 控制台、运维脚本、验收测试
 
 ## 运行环境
@@ -12,7 +12,7 @@
 |---|---|
 | Python | 3.11.14（uv 管理，`.venv`） |
 | 依赖 | 核心 + dev + parsing + mcp extras（`uv.lock` 锁定） |
-| 数据库 | PostgreSQL 16.15，虚拟机 `192.168.200.188:5432`，库 `contract_review` |
+| 数据库 | PostgreSQL 16.x（连接串见 `.env` 的 `DATABASE_URL`；示例见 `.env.example`） |
 | 主服务 | `127.0.0.1:8000`（Web 控制台 `/console`） |
 | Mock 审批系统 | `127.0.0.1:8100` |
 | LLM（可选增强） | OpenCode Go 网关 / `deepseek-v4.1-flash`，已启用；失败自动回退确定性结果 |
@@ -41,7 +41,7 @@ uv run python scripts/run_all.py
 
 ```powershell
 uv run python scripts/demo.py     # 17 项断言 → demo_report.json
-uv run pytest -q                  # 69 项测试（单元/组件/集成/验收）
+uv run pytest -q                  # 70 项测试（单元/组件/集成/验收）
 ```
 
 运维脚本：
@@ -83,6 +83,8 @@ REST：统一入口 `POST /api/tools/{tool_name}`（Swagger 见 `/docs`）；MCP
 
 ## 5 分钟演示脚本
 
+完整分步说明（含预期结果与排障）：[docs/演示说明.md](docs/演示说明.md)。
+
 1. `uv run python scripts/run_all.py` → 打开 `http://127.0.0.1:8000/console`。
 2. 点"拉取待办"→ 4 条审批单（含 1 条缺附件）。
 3. 处理 `AP20261021001`（标准合同）→ 自动刷新至已完成 → 解析/命中/结果页：低风险、评论已回写。
@@ -97,7 +99,7 @@ REST：统一入口 `POST /api/tools/{tool_name}`（Swagger 见 `/docs`）；MCP
 
 | 变量 | 说明 | 当前值 |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL 连接串 | `postgresql+psycopg://crs:***@192.168.200.188:5432/contract_review` |
+| `DATABASE_URL` | PostgreSQL 连接串 | `postgresql+psycopg://crs:***@<db-host>:5432/contract_review` |
 | `APP_HOST` / `APP_PORT` | 主服务监听 | `127.0.0.1` / `8000` |
 | `APPROVAL_SYSTEM_BASE_URL` | 审批系统地址 | `http://127.0.0.1:8100`（Mock） |
 | `LLM_ENABLED` / `LLM_BASE_URL` / `LLM_MODEL` | 可选 LLM 补抽 | `true` / OpenCode Go 网关 / `deepseek-v4.1-flash` |
@@ -123,7 +125,7 @@ scripts/                init_db / seed_rules / generate_samples / run_all / demo
                         reset_demo / cleanup / check_pg
 sql/                    001_schema.sql（8 表 DDL）+ 002_seed_rules.sql（11 条规则）
 tests/                  pytest：unit / component / integration / acceptance（57 项）
-docs/                   项目设计文档
+docs/                   项目设计文档 + 演示说明（演示说明.md）
 Dockerfile              可选：应用镜像（数据库使用外部 PostgreSQL）
 ```
 
@@ -131,7 +133,7 @@ Dockerfile              可选：应用镜像（数据库使用外部 PostgreSQL
 
 | 维度 | 结果 |
 |---|---|
-| 单元/组件/集成/验收测试 | **69 passed**（含 §12 七条验收逐条映射） |
+| 单元/组件/集成/验收测试 | **70 passed**（含 §12 七条验收逐条映射） |
 | 无头闭环演示 | **17/17 断言通过**（`demo_report.json`） |
 | 拉取去重 | 4 条审批单，重复拉取不重复建任务 |
 | 全流程 AP001 | 解析 → 规则（低）→ 保存 → 回写，`done/success`，Mock 评论 1 条 |
@@ -150,10 +152,10 @@ Dockerfile              可选：应用镜像（数据库使用外部 PostgreSQL
 
 | 项 | 状态/说明 | 建议 |
 |---|---|---|
-| Dockerfile / compose 本机 PG | 可选产物，未纳入自动化验收（本机 Docker 未启用） | 真正部署前在 Docker 环境实测 `uv sync --frozen` 镜像构建 |
+| Dockerfile / compose 本机 PG | 已静态修正基础镜像/依赖安装/启动命令并添加 `.dockerignore`；本机 Docker 未启用，镜像构建仍未实测 | 部署前在 Docker 环境实测镜像构建 |
 | LLM 补抽路径 | 已人工验证可用；`run_all.py` 默认关闭以保证演示可复现（加 `--llm` 开启），自动化测试默认 `LLM_ENABLED=false` | 增加 mock OpenAI 兼容服务的单测，避免依赖真实网关 |
 | 解析超时粒度 | 按页/按段落检查点中止，单张超大图 OCR 调用不可抢占 | 若需硬超时可改多进程解析 |
 | 并发与启动恢复 | CAS/信号量逻辑已实现，恢复路径有单测；未做多进程并发压测 | 多实例部署前应改为数据库锁/任务队列 |
-| 示例口令 | `.env.example`、`compose.yaml`、设计文档含本地开发口令 `crs_dev_password` | 共享/生产环境改用真实环境变量注入 |
-| 遗留文件 | 仓库根目录 `main.py` 为 IDE 模板，未参与运行 | 可删除；本项目入口是 `app/main.py` |
-| 版本管理 | 目录尚未初始化 git 仓库 | 交付前 `git init` 并提交（`.env`/数据目录已 gitignore） |
+| 凭据管理 | 公开仓库仅保留占位符（`change_me` / `<db-host>`）；真实口令与 LLM Key 只在本地 `.env`，不入库 | 生产环境通过环境变量/密钥管理注入 |
+| 许可证 | 仓库未附 LICENSE | 如需公开分发，确定 MIT/Apache-2.0 等协议后添加 |
+| 版本管理 | 已初始化 git 并推送 GitHub；`v0.1.0` 为验收基线，工作区干净 | 后续改动按提交/tag 管理 |

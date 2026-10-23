@@ -7,8 +7,9 @@ Tests, in order:
   4. simple queries: version / current_user / role attributes / database list
 
 Usage:
-  python scripts/check_pg.py --host 192.168.200.188 --port 5432 \
-      --user crs --password crs_dev_password --databases postgres,contract_review
+  python scripts/check_pg.py --databases contract_review
+  # 默认连接参数从仓库根目录 .env 的 DATABASE_URL 读取；也可显式覆盖：
+  python scripts/check_pg.py --host 127.0.0.1 --port 5432 --user crs --password <password>
 """
 
 from __future__ import annotations
@@ -22,6 +23,8 @@ import socket
 import ssl
 import struct
 import sys
+from pathlib import Path
+from urllib.parse import urlparse
 from dataclasses import dataclass, field
 
 PROTOCOL_3_0 = 196608
@@ -350,12 +353,37 @@ def probe_database(host: str, port: int, user: str, password: str, database: str
     return result
 
 
+def _connection_defaults() -> tuple[str, int, str, str]:
+    """默认连接参数：环境变量或仓库根目录 .env 中的 DATABASE_URL（保持标准库实现）。"""
+    url = os.environ.get("DATABASE_URL", "")
+    if not url:
+        env_path = Path(__file__).resolve().parents[1] / ".env"
+        try:
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line.startswith("DATABASE_URL="):
+                    url = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+        except OSError:
+            pass
+    if not url:
+        return "127.0.0.1", 5432, "crs", ""
+    parsed = urlparse(url.replace("+psycopg", ""))
+    return (
+        parsed.hostname or "127.0.0.1",
+        parsed.port or 5432,
+        parsed.username or "crs",
+        parsed.password or "",
+    )
+
+
 def main() -> int:
+    default_host, default_port, default_user, default_password = _connection_defaults()
     parser = argparse.ArgumentParser(description="PostgreSQL connectivity probe (stdlib only)")
-    parser.add_argument("--host", default="192.168.200.188")
-    parser.add_argument("--port", type=int, default=5432)
-    parser.add_argument("--user", default="crs")
-    parser.add_argument("--password", default="crs_dev_password")
+    parser.add_argument("--host", default=default_host)
+    parser.add_argument("--port", type=int, default=default_port)
+    parser.add_argument("--user", default=default_user)
+    parser.add_argument("--password", default=default_password)
     parser.add_argument("--databases", default="postgres,contract_review")
     parser.add_argument("--timeout", type=float, default=8.0)
     parser.add_argument("--sslmode", choices=["prefer", "disable", "require"], default="prefer")

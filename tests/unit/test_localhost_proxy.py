@@ -13,7 +13,7 @@ LOCAL_URLS = [
 ]
 
 REMOTE_URLS = [
-    "http://192.168.200.188:8100",
+    "http://192.0.2.10:8100",
     "https://approval.example.com",
     "http://10.0.0.5:8000",
 ]

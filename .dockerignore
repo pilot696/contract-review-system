@@ -1,0 +1,19 @@
+# 构建上下文裁剪：运行镜像只需源码 + lock 文件
+.venv/
+.uv-cache/
+.git/
+.gitignore
+.gitattributes
+.env
+.env.example
+data/
+logs/
+mock_approval/files/
+demo_report.json
+.pytest_cache/
+.coverage
+.idea/
+.vscode/
+docs/
+tests/
+README.md
