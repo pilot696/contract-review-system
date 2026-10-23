@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>待办审批单</h1>
+<div class="toolbar">
+  <form method="post" action="/console/actions/pull"><button>拉取待办</button></form>
+  <span class="muted">状态筛选：</span>
+  <a href="/console">全部</a>
+  <a href="/console?status=pending">待处理</a>
+  <a href="/console?status=parsing">解析中</a>
+  <a href="/console?status=reviewing">审查中</a>
+  <a href="/console?status=blocked">已阻塞</a>
+  <a href="/console?status=done">已完成</a>
+</div>
+<table>
+  <thead>
+    <tr><th>审批编号</th><th>标题</th><th>申请人</th><th>附件</th><th>任务状态</th><th>回写状态</th><th>操作</th></tr>
+  </thead>
+  <tbody>
+  {% for task in tasks %}
+    <tr>
+      <td><a href="/console/tasks/{{ task.approval_code }}">{{ task.approval_code }}</a></td>
+      <td>{{ task.approval_title }}</td>
+      <td>{{ task.applicant_name or '-' }}</td>
+      <td>{{ task.attachment_count }}</td>
+      <td>
+        <span class="badge badge-{{ task.task_status }}">{{ task_labels[task.task_status] }}</span>
+        {% if task.blocked_reason %}<div class="muted">{{ blocked_labels.get(task.blocked_reason, task.blocked_reason) }}</div>{% endif %}
+      </td>
+      <td><span class="badge badge-write-{{ task.write_status }}">{{ write_labels[task.write_status] }}</span></td>
+      <td class="actions">
+        {% if task.task_status == 'pending' %}
+        <form class="inline" method="post" action="/console/actions/process/{{ task.approval_code }}"><button>处理</button></form>
+        {% elif task.task_status == 'blocked' %}
+        <form class="inline" method="post" action="/console/actions/retry/{{ task.approval_code }}"><button>重试</button></form>
+        {% endif %}
+        <a href="/console/tasks/{{ task.approval_code }}/parse">解析</a>
+        <a href="/console/tasks/{{ task.approval_code }}/review">命中</a>
+        <a href="/console/tasks/{{ task.approval_code }}/result">结果</a>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">暂无任务，点击"拉取待办"。</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

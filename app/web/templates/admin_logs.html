@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}运行日志 · 合同审批审查系统{% endblock %}
+{% block content %}
+<h1>运行日志</h1>
+<div class="toolbar">
+  <span class="muted">级别：</span>
+  <a href="/console/admin/logs">全部</a>
+  <a href="/console/admin/logs?level=info">info</a>
+  <a href="/console/admin/logs?level=warning">warning</a>
+  <a href="/console/admin/logs?level=error">error</a>
+  <span class="muted">类型：</span>
+  <a href="/console/admin/logs">全部</a>
+  <a href="/console/admin/logs?log_type=state">state</a>
+  <a href="/console/admin/logs?log_type=pull">pull</a>
+  <a href="/console/admin/logs?log_type=download">download</a>
+  <a href="/console/admin/logs?log_type=parse">parse</a>
+  <a href="/console/admin/logs?log_type=review">review</a>
+  <a href="/console/admin/logs?log_type=writeback">writeback</a>
+</div>
+<table>
+  <thead><tr><th>时间</th><th>审批编号</th><th>级别</th><th>类型</th><th>内容</th></tr></thead>
+  <tbody>
+  {% for log, approval_code in rows %}
+    <tr>
+      <td class="muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '-' }}</td>
+      <td>{% if approval_code %}<a href="/console/tasks/{{ approval_code }}">{{ approval_code }}</a>{% else %}-{% endif %}</td>
+      <td>{{ log.log_level }}</td>
+      <td>{{ log.log_type }}</td>
+      <td>{{ log.log_content }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="muted">暂无日志。</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ task.approval_code }} · 规则命中{% endblock %}
+{% block content %}
+<h1>规则命中 · {{ task.approval_code }}</h1>
+<p><a href="/console/tasks/{{ task.approval_code }}">← 返回任务详情</a></p>
+
+{% if review %}
+<div class="card">
+  总体风险等级：<strong class="risk-{{ review.overall_risk_level }}">{{ risk_labels[review.overall_risk_level] }}</strong>
+  · 命中 {{ review.hit_count }} 条 · 共 {{ hits|length }} 条命中/跳过记录
+</div>
+{% else %}
+<div class="card muted">尚未执行规则审查（任务未完成或尚无结果）。</div>
+{% endif %}
+
+<table>
+  <thead>
+    <tr><th>规则</th><th>名称</th><th>等级</th><th>状态</th><th>证据</th><th>位置</th><th>建议</th></tr>
+  </thead>
+  <tbody>
+  {% for hit in hits %}
+    {% set rule = rules.get(hit.rule_id) %}
+    <tr>
+      <td>{{ rule.rule_code if rule else '-' }}</td>
+      <td>{{ rule.rule_name if rule else '-' }}</td>
+      <td>
+        {% if rule %}<span class="badge badge-risk-{{ rule.risk_level }}">{{ risk_labels[rule.risk_level] }}</span>{% endif %}
+      </td>
+      <td>
+        {% if hit.hit_status == 'hit' %}<span class="badge badge-risk-{{ rule.risk_level if rule else 'low' }}">命中</span>
+        {% else %}<span class="badge badge-skipped">跳过</span>{% endif %}
+      </td>
+      <td>{{ hit.evidence_text }}</td>
+      <td class="muted">{{ hit.evidence_position }}{% if hit.evidence_page %}（第{{ hit.evidence_page }}页）{% endif %}</td>
+      <td>{{ rule.suggestion_text if rule else '-' }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">暂无命中记录。</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if review and review.focus_points_json %}
+<h2>审批关注点</h2>
+<ol>
+  {% for point in review.focus_points_json %}
+  <li><strong>{{ point.title }}</strong>：{{ point.detail }}<div class="muted">证据：{{ point.evidence }}</div></li>
+  {% endfor %}
+</ol>
+{% endif %}
+{% endblock %}

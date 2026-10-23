@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}合同审批审查系统{% endblock %}</title>
+  {% if auto_refresh %}<meta http-equiv="refresh" content="{{ auto_refresh }}">{% endif %}
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header>
+  <div class="brand">合同审批审查系统</div>
+  <nav>
+    <a href="/console">待办</a>
+    <a href="/console/admin/rules">规则</a>
+    <a href="/console/admin/logs">日志</a>
+    <a href="/console/admin/faults">故障注入</a>
+    <a href="/docs" target="_blank">API</a>
+  </nav>
+</header>
+{% if message %}<div class="flash">{{ message }}</div>{% endif %}
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>dev 环境 · 仅监听 127.0.0.1 · 本系统输出仅供审批参考，不替代人工审批</footer>
+</body>
+</html>

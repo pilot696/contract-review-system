@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ task.approval_code }} · 解析结果{% endblock %}
+{% block content %}
+<h1>解析结果 · {{ task.approval_code }}</h1>
+<p><a href="/console/tasks/{{ task.approval_code }}">← 返回任务详情</a></p>
+
+{% for parse in parses %}
+  {% set att = attachments.get(parse.attachment_id) %}
+  <div class="card">
+    <h2>{{ att.file_name if att else '附件' }}（document_id={{ parse.attachment_id }}）</h2>
+    <div class="status-line">
+      <span>解析状态：<strong>{{ parse.parse_status }}</strong></span>
+      <span>OCR：{{ '是' if parse.ocr_used else '否' }}</span>
+      <span>页数：{{ parse.page_count if parse.page_count is not none else '-' }}</span>
+      <span>解析器：{{ parse.parser_version }}</span>
+      {% if parse.parse_error %}<span class="muted">失败原因：{{ parse.parse_error }}</span>{% endif %}
+    </div>
+
+    <h3>基本信息（8 项，含字段级证据）</h3>
+    <table>
+      <thead><tr><th>字段</th><th>值</th><th>状态</th><th>置信度</th><th>证据</th></tr></thead>
+      <tbody>
+      {% for name, field in parse.basic_info_json.items() %}
+        <tr>
+          <td>{{ field_labels.get(name, name) }}</td>
+          <td>{{ field.value if field.value is not none else '-' }}</td>
+          <td><span class="badge {{ 'badge-risk-low' if field.extract_status == 'extracted' else 'badge-skipped' }}">{{ field.extract_status }}</span></td>
+          <td>{{ field.confidence }}</td>
+          <td>
+            {% if field.evidence and field.evidence.text %}
+            <details><summary>查看原文</summary><div class="muted">{{ field.evidence.text }}</div>
+              <div class="muted">位置：{{ field.evidence.position }}（第 {{ field.evidence.page_no if field.evidence.page_no is not none else '-' }} 页）</div>
+            </details>
+            {% else %}<span class="muted">-</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>条款（8 类）</h3>
+    <table>
+      <thead><tr><th>条款</th><th>状态</th><th>内容</th><th>位置</th></tr></thead>
+      <tbody>
+      {% for name, field in parse.clause_info_json.items() %}
+        <tr>
+          <td>{{ field_labels.get(name, name) }}</td>
+          <td><span class="badge {{ 'badge-risk-low' if field.extract_status == 'extracted' else 'badge-skipped' }}">{{ field.extract_status }}</span></td>
+          <td>{{ field.value if field.value else '-' }}</td>
+          <td class="muted">{{ field.evidence.position if field.evidence else '-' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+<div class="card muted">尚无解析结果，请先在任务详情页处理任务。</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ task.approval_code }} · 任务日志{% endblock %}
+{% block content %}
+<h1>任务日志 · {{ task.approval_code }}</h1>
+<p><a href="/console/tasks/{{ task.approval_code }}">← 返回任务详情</a></p>
+<div class="toolbar">
+  <a href="/console/tasks/{{ task.approval_code }}/logs">全部</a>
+  <a href="/console/tasks/{{ task.approval_code }}/logs?level=info">info</a>
+  <a href="/console/tasks/{{ task.approval_code }}/logs?level=warning">warning</a>
+  <a href="/console/tasks/{{ task.approval_code }}/logs?level=error">error</a>
+</div>
+<table>
+  <thead><tr><th>时间</th><th>级别</th><th>类型</th><th>内容</th></tr></thead>
+  <tbody>
+  {% for log in logs %}
+    <tr>
+      <td class="muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '-' }}</td>
+      <td>{{ log.log_level }}</td>
+      <td>{{ log.log_type }}</td>
+      <td>{{ log.log_content }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="muted">暂无日志。</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}故障注入 · 合同审批审查系统{% endblock %}
+{% block content %}
+<h1>Mock 审批系统 · 故障注入</h1>
+<p class="muted">用于演示 blocked 与重试：故障只影响 Mock 审批系统，可限定单个审批单。</p>
+
+<div class="card">
+  <h2>当前 Mock 状态</h2>
+  {% if state %}
+  <dl class="kv">
+    <dt>审批单数量</dt><dd>{{ state.get('approvals') }}</dd>
+    <dt>故障模式</dt><dd>{{ state.get('faults', {}).get('modes') }}</dd>
+    <dt>限定审批单</dt><dd>{{ state.get('faults', {}).get('approval_code') or '全部' }}</dd>
+    <dt>延迟</dt><dd>{{ state.get('faults', {}).get('latency_ms') }} ms</dd>
+    <dt>评论数</dt><dd>{{ state.get('comments') }}</dd>
+  </dl>
+  {% else %}
+  <p class="muted">Mock 审批系统不可达（{{ mock_url }}）。请先启动 mock_approval.main:app。</p>
+  {% endif %}
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>注入故障</h2>
+    <form method="post" action="/console/admin/faults">
+      <label>故障模式</label>
+      <select name="mode">
+        <option value="missing_attachment">missing_attachment（附件 404）</option>
+        <option value="download_500">download_500（下载 500）</option>
+        <option value="empty_document">empty_document（空文档）</option>
+        <option value="unreadable_image">unreadable_image（无法识别图片）</option>
+        <option value="comment_500">comment_500（回写 500）</option>
+      </select>
+      <label>限定审批编号（留空=全部）</label>
+      <input name="approval_code" placeholder="AP20261021004">
+      <label>人为延迟（毫秒）</label>
+      <input name="latency_ms" type="number" value="0">
+      <p><button>注入</button></p>
+    </form>
+  </div>
+  <div class="card">
+    <h2>清除 / 重置</h2>
+    <form method="post" action="/console/admin/faults/clear" style="margin-bottom:10px">
+      <button class="secondary">清除故障注入</button>
+    </form>
+    <form method="post" action="/console/admin/reset">
+      <button class="danger">重置演示数据（清空任务/命中/结果，重载 Mock）</button>
+    </form>
+    <p class="muted">重置不会删除规则表（11 条种子规则保留）。</p>
+  </div>
+</div>
+{% endblock %}

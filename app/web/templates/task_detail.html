@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ task.approval_code }} · 合同审批审查系统{% endblock %}
+{% block content %}
+<h1>{{ task.approval_title }}</h1>
+<div class="card">
+  <div class="status-line">
+    <span>审批编号：<strong>{{ task.approval_code }}</strong></span>
+    <span>申请人：{{ task.applicant_name or '-' }}</span>
+    <span>附件：{{ task.attachment_count }}</span>
+    <span>任务状态：<span class="badge badge-{{ task.task_status }}">{{ task_labels[task.task_status] }}</span></span>
+    <span>回写状态：<span class="badge badge-write-{{ task.write_status }}">{{ write_labels[task.write_status] }}</span></span>
+    {% if task.blocked_reason %}<span class="muted">阻塞原因：{{ blocked_labels.get(task.blocked_reason, task.blocked_reason) }}</span>{% endif %}
+    {% if task.failed_stage %}<span class="muted">失败阶段：{{ task.failed_stage }}</span>{% endif %}
+    {% if task.retry_count %}<span class="muted">已重试：{{ task.retry_count }} 次</span>{% endif %}
+  </div>
+  {% if task.last_error %}<p class="muted">最近错误：{{ task.last_error }}</p>{% endif %}
+  <div class="actions" style="margin-top:12px">
+    {% if task.task_status == 'pending' %}
+    <form class="inline" method="post" action="/console/actions/process/{{ task.approval_code }}"><button>开始处理</button></form>
+    {% elif task.task_status == 'blocked' %}
+    <form class="inline" method="post" action="/console/actions/retry/{{ task.approval_code }}"><button>重试</button></form>
+    {% endif %}
+    <a href="/console/tasks/{{ task.approval_code }}/parse">解析结果</a>
+    <a href="/console/tasks/{{ task.approval_code }}/review">规则命中</a>
+    <a href="/console/tasks/{{ task.approval_code }}/result">结果处理</a>
+    <a href="/console/tasks/{{ task.approval_code }}/logs">日志</a>
+  </div>
+</div>
+
+<h2>附件</h2>
+<table>
+  <thead><tr><th>document_id</th><th>文件名</th><th>类型</th><th>大小</th><th>下载状态</th><th>本地路径</th></tr></thead>
+  <tbody>
+  {% for att in attachments %}
+    <tr>
+      <td>{{ att.id }}</td>
+      <td>{{ att.file_name }}</td>
+      <td>{{ att.file_type }}</td>
+      <td>{{ att.file_size or '-' }}</td>
+      <td>{{ att.download_status }}</td>
+      <td class="muted">{{ att.file_path or '-' }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="muted">尚未拉取附件元数据</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>审查结果</h2>
+{% if review %}
+<p>总体风险等级：<strong class="risk-{{ review.overall_risk_level }}">{{ risk_labels[review.overall_risk_level] }}</strong>
+ · 命中 {{ review.hit_count }} 条 · <a href="/console/tasks/{{ task.approval_code }}/result">查看评论正文</a></p>
+{% else %}
+<p class="muted">尚无审查结果。</p>
+{% endif %}
+{% endblock %}

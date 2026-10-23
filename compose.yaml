@@ -1,0 +1,24 @@
+# 本地备选数据库：日常开发使用虚拟机 PG（192.168.200.188:5432）。
+# 只有在本机 Docker 可用、且需要完全离线自包含时才启用：
+#   docker compose up -d postgres
+services:
+  postgres:
+    image: postgres:16
+    container_name: crs-postgres
+    environment:
+      POSTGRES_USER: crs
+      POSTGRES_PASSWORD: crs_dev_password
+      POSTGRES_DB: contract_review
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crs -d contract_review"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

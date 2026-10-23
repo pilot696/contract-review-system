@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}规则维护 · 合同审批审查系统{% endblock %}
+{% block content %}
+<h1>审查规则维护</h1>
+<p class="muted">共 {{ rules|length }} 条规则。修改后对下一次审查立即生效；历史命中保留。</p>
+
+<details class="card">
+  <summary>新建规则</summary>
+  <form method="post" action="/console/admin/rules">
+    <div class="grid">
+      <div><label>规则编码（如 R012）</label><input name="rule_code" required pattern="[A-Z][A-Z0-9_]{1,31}"></div>
+      <div><label>规则名称</label><input name="rule_name" required></div>
+      <div><label>风险等级</label>
+        <select name="risk_level"><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select>
+      </div>
+      <div><label>匹配模式</label>
+        <select name="match_mode">
+          <option value="keyword">keyword</option>
+          <option value="regex">regex</option>
+          <option value="field_absent">field_absent</option>
+          <option value="numeric_threshold">numeric_threshold</option>
+        </select>
+      </div>
+      <div><label>优先级（越小越靠前）</label><input name="priority" type="number" value="100"></div>
+    </div>
+    <label>匹配文本（keyword 用 | 分隔；regex 写正则；field_absent 写字段名；numeric_threshold 写 JSON）</label>
+    <textarea name="match_text" required></textarea>
+    <label>处理建议</label>
+    <textarea name="suggestion_text" required></textarea>
+    <p><button>创建规则</button></p>
+  </form>
+</details>
+
+<table>
+  <thead><tr><th>编码</th><th>名称</th><th>等级</th><th>模式</th><th>状态</th><th>优先级</th><th>操作</th></tr></thead>
+  <tbody>
+  {% for rule in rules %}
+    <tr>
+      <td>{{ rule.rule_code }}</td>
+      <td>{{ rule.rule_name }}</td>
+      <td><span class="badge badge-risk-{{ rule.risk_level }}">{{ risk_labels[rule.risk_level] }}</span></td>
+      <td>{{ rule.match_mode }}</td>
+      <td>{{ '启用' if rule.rule_status == 'active' else '停用' }}</td>
+      <td>{{ rule.priority }}</td>
+      <td class="actions">
+        <form class="inline" method="post" action="/console/admin/rules/{{ rule.rule_code }}/toggle">
+          <button class="secondary">{{ '停用' if rule.rule_status == 'active' else '启用' }}</button>
+        </form>
+        <details>
+          <summary>编辑</summary>
+          <form method="post" action="/console/admin/rules/{{ rule.rule_code }}">
+            <label>名称</label><input name="rule_name" value="{{ rule.rule_name }}" required>
+            <label>风险等级</label>
+            <select name="risk_level">
+              <option value="high" {{ 'selected' if rule.risk_level == 'high' }}>高</option>
+              <option value="medium" {{ 'selected' if rule.risk_level == 'medium' }}>中</option>
+              <option value="low" {{ 'selected' if rule.risk_level == 'low' }}>低</option>
+            </select>
+            <label>匹配模式</label>
+            <select name="match_mode">
+              {% for mode in ['keyword', 'regex', 'field_absent', 'numeric_threshold'] %}
+              <option value="{{ mode }}" {{ 'selected' if rule.match_mode == mode }}>{{ mode }}</option>
+              {% endfor %}
+            </select>
+            <label>匹配文本</label><textarea name="match_text" required>{{ rule.match_text }}</textarea>
+            <label>处理建议</label><textarea name="suggestion_text" required>{{ rule.suggestion_text }}</textarea>
+            <label>优先级</label><input name="priority" type="number" value="{{ rule.priority }}">
+            <label>状态</label>
+            <select name="rule_status">
+              <option value="active" {{ 'selected' if rule.rule_status == 'active' }}>启用</option>
+              <option value="inactive" {{ 'selected' if rule.rule_status == 'inactive' }}>停用</option>
+            </select>
+            <p><button>保存</button></p>
+          </form>
+        </details>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

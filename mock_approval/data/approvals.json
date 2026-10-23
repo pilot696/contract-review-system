@@ -1,0 +1,88 @@
+{
+  "approvals": [
+    {
+      "approval_code": "AP20261021001",
+      "title": "软件开发服务合同",
+      "applicant_name": "张三",
+      "apply_date": "2026-10-20",
+      "status": "pending",
+      "form_data": {
+        "合同类型": "服务类",
+        "合同金额": "500000",
+        "币种": "CNY",
+        "合同相对方": "云帆软件有限公司"
+      },
+      "attachments": [
+        {
+          "attachment_id": "ATT-001",
+          "file_name": "sample_01_standard.docx",
+          "file_type": "docx",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "approval_code": "AP20261021002",
+      "title": "服务器采购合同",
+      "applicant_name": "李四",
+      "apply_date": "2026-10-21",
+      "status": "pending",
+      "form_data": {
+        "合同类型": "采购类",
+        "合同金额": "1280000",
+        "币种": "CNY",
+        "合同相对方": "星河数据设备有限公司"
+      },
+      "attachments": [
+        {
+          "attachment_id": "ATT-002",
+          "file_name": "sample_02_risky.pdf",
+          "file_type": "pdf",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "approval_code": "AP20261021003",
+      "title": "设备租赁合同（扫描件）",
+      "applicant_name": "王五",
+      "apply_date": "2026-10-21",
+      "status": "pending",
+      "form_data": {
+        "合同类型": "租赁类",
+        "合同金额": "240000",
+        "币种": "CNY",
+        "合同相对方": "恒达设备租赁有限公司"
+      },
+      "attachments": [
+        {
+          "attachment_id": "ATT-003",
+          "file_name": "sample_03_scan.png",
+          "file_type": "png",
+          "missing": false
+        }
+      ]
+    },
+    {
+      "approval_code": "AP20261021004",
+      "title": "咨询服务合同（缺附件）",
+      "applicant_name": "赵六",
+      "apply_date": "2026-10-22",
+      "status": "pending",
+      "form_data": {
+        "合同类型": "服务类",
+        "合同金额": "80000",
+        "币种": "CNY",
+        "合同相对方": "远景咨询有限公司"
+      },
+      "attachments": [
+        {
+          "attachment_id": "ATT-004",
+          "file_name": "sample_04_missing.pdf",
+          "file_type": "pdf",
+          "missing": true
+        }
+      ]
+    }
+  ]
+}

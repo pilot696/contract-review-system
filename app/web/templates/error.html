@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}操作未完成 · 合同审批审查系统{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>操作未完成</h1>
+  <p>错误码：<strong>{{ code }}</strong>（HTTP {{ status_code }}）</p>
+  <p>{{ message }}</p>
+  <p><a href="/console">← 返回待办列表</a></p>
+</div>
+{% endblock %}

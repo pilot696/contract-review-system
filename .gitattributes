@@ -1,0 +1,13 @@
+# 统一换行：文本文件按 LF 入库；Windows 脚本保持 CRLF；二进制文件不做转换
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.docx binary
+*.xlsx binary

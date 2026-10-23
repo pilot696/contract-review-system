@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ task.approval_code }} · 结果处理{% endblock %}
+{% block content %}
+<h1>结果处理 · {{ task.approval_code }}</h1>
+<p><a href="/console/tasks/{{ task.approval_code }}">← 返回任务详情</a></p>
+
+{% if review %}
+<div class="card">
+  <div class="status-line">
+    <span>总体风险等级：<strong class="risk-{{ review.overall_risk_level }}">{{ level_label[review.overall_risk_level] }}</strong></span>
+    <span>命中规则：{{ review.hit_count }} 条</span>
+    <span>回写状态：<span class="badge badge-write-{{ task.write_status }}">{{ write_labels[task.write_status] }}</span></span>
+  </div>
+  <form method="post" action="/console/tasks/{{ task.approval_code }}/writeback" style="margin-top:12px">
+    <button>回写审批评论</button>
+  </form>
+</div>
+
+<h2>中文摘要</h2>
+<div class="card">{{ review.summary_text }}</div>
+
+<h2>审批关注点</h2>
+<ol>
+  {% for point in review.focus_points_json %}
+  <li><strong>{{ point.title }}</strong>（{{ risk_labels.get(point.level, point.level) }}）：{{ point.detail }}
+    <div class="muted">证据：{{ point.evidence }}</div>
+  </li>
+  {% else %}
+  <li class="muted">无</li>
+  {% endfor %}
+</ol>
+
+<h2>回写内容预览</h2>
+<pre>{{ review.comment_text }}</pre>
+{% else %}
+<div class="card muted">尚无审查结果，请先完成任务处理。</div>
+{% endif %}
+{% endblock %}
