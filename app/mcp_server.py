@@ -23,7 +23,12 @@ from app.services.pull_service import get_and_upsert_detail, pull_and_upsert
 from app.services.rules import run_rules
 from app.services.state import now_iso
 from app.services.task_service import load_task
-from app.services.writeback_service import save_review_result, write_approval_comment
+# 必须用别名导入：下方同名 MCP 工具函数会覆盖模块级名称，
+# 若直接导入 save_review_result / write_approval_comment，工具体内部会自我调用（TypeError）。
+from app.services.writeback_service import (
+    save_review_result as _save_review_result_service,
+    write_approval_comment as _write_approval_comment_service,
+)
 from app.models import ApprovalAttachment, ApprovalTask
 
 TOOL_NAMES: tuple[str, ...] = (
@@ -226,7 +231,7 @@ def save_review_result(
     db = SessionLocal()
     try:
         task = load_task(db, case_id)
-        result = save_review_result(
+        result = _save_review_result_service(
             db,
             task,
             overall_risk_level=overall_risk_level,
@@ -249,7 +254,7 @@ def write_approval_comment(instance_id: str, review_id: int) -> dict:
     db = SessionLocal()
     try:
         task = load_task(db, instance_id)
-        result = write_approval_comment(db, client, task, review_id, settings)
+        result = _write_approval_comment_service(db, client, task, review_id, settings)
         db.commit()
         return result.to_tool_dict()
     finally:

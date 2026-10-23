@@ -3,7 +3,7 @@
 面向企业合同审批场景的自动风险审查工具服务：拉取待办 → 下载附件 → 解析合同 → 规则审查 → 保存结果 → 回写审批评论区，形成可运行的完整闭环。
 
 - 设计文档：[docs/项目设计文档.md](docs/项目设计文档.md)（决策完备，含 DDL、接口契约、算法与 §12 验收对照）
-- 当前进度：**M0–M5 全部完成 ✅**（70 项测试通过，无头演示 17/17）
+- 当前进度：**M0–M5 全部完成 ✅**（72 项测试通过，无头演示 17/17）
 - 交付内容：7 个工具（REST + MCP）、8 张表、11 条规则、Mock 审批系统、Web 控制台、运维脚本、验收测试
 
 ## 运行环境
@@ -41,7 +41,7 @@ uv run python scripts/run_all.py
 
 ```powershell
 uv run python scripts/demo.py     # 17 项断言 → demo_report.json
-uv run pytest -q                  # 70 项测试（单元/组件/集成/验收）
+uv run pytest -q                  # 72 项测试（单元/组件/集成/验收）
 ```
 
 运维脚本：
@@ -91,7 +91,7 @@ REST：统一入口 `POST /api/tools/{tool_name}`（Swagger 见 `/docs`）；MCP
 4. 处理 `AP20261021002`（高风险 PDF）→ 高风险，命中 6 条（R001/R002/R003/R004/R005/R011）。
 5. 处理 `AP20261021003`（扫描件）→ 展示 OCR 标记与字段缺失，命中 4 条（R007/R008/R009/R010）。
 6. 管理页对 AP002 注入 `missing_attachment` → 处理 → blocked；清除故障 → 重试 → done。
-7. 终端执行 `uv run python scripts/demo.py`（17 项断言）与 `uv run pytest -q`（57 项）。
+7. 终端执行 `uv run python scripts/demo.py`（17 项断言）与 `uv run pytest -q`（72 项）。
 
 ## 配置
 
@@ -124,7 +124,7 @@ mock_approval/          Mock 审批系统（种子数据、评论、故障注入
 scripts/                init_db / seed_rules / generate_samples / run_all / demo /
                         reset_demo / cleanup / check_pg
 sql/                    001_schema.sql（8 表 DDL）+ 002_seed_rules.sql（11 条规则）
-tests/                  pytest：unit / component / integration / acceptance（57 项）
+tests/                  pytest：unit / component / integration / acceptance（72 项）
 docs/                   项目设计文档 + 演示说明（演示说明.md）
 Dockerfile              可选：应用镜像（数据库使用外部 PostgreSQL）
 ```
@@ -133,7 +133,7 @@ Dockerfile              可选：应用镜像（数据库使用外部 PostgreSQL
 
 | 维度 | 结果 |
 |---|---|
-| 单元/组件/集成/验收测试 | **70 passed**（含 §12 七条验收逐条映射） |
+| 单元/组件/集成/验收测试 | **72 passed**（含 §12 七条验收逐条映射） |
 | 无头闭环演示 | **17/17 断言通过**（`demo_report.json`） |
 | 拉取去重 | 4 条审批单，重复拉取不重复建任务 |
 | 全流程 AP001 | 解析 → 规则（低）→ 保存 → 回写，`done/success`，Mock 评论 1 条 |
@@ -142,7 +142,7 @@ Dockerfile              可选：应用镜像（数据库使用外部 PostgreSQL
 | 异常与重试 | 缺附件 → `blocked(download/ATTACHMENT_MISSING)` → 清障重试 → `done/success` |
 | 回写幂等 | 重复回写 `idempotent_replay=true`，评论区仍 1 条 |
 | SQL 初始化脚本 | 001 在临时库建 8 表；002 种子二次执行幂等 |
-| MCP | 7 个工具注册校验通过；stdio 协议 initialize + tools/list 实测通过 |
+| MCP | 7 工具注册；stdio initialize/tools/list 通过；工具 6/7 真实 stdio 调用（save→write→幂等重放）通过 |
 | 数据库 schema | 8 表、列、索引、唯一/检查约束、外键与 ORM 模型一致（自动比对通过） |
 | 自检修复（2026-10-22） | 文件大小/类型白名单、解析超时、评论截断、MCP `ToolError`、统计成功率/平均耗时、日志脱敏、控制台 HTML 错误页 |
 
